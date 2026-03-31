@@ -123,7 +123,11 @@
                 for(let file of attachments) { formData.append('attachments', file); }
 
                 try {
-                    const res = await fetch('/api/send', { method: 'POST', body: formData });
+                    // Update the fetch URL to your live domain:
+const res = await fetch('https://p7m.online/api/send', { 
+    method: 'POST', 
+    body: formData 
+});
                     const d = await res.json();
                     if(d.success) { sent++; addLog(`SENT: ${tRow[0]}`, "text-green-400"); }
                     else { throw new Error(d.error); }
