@@ -41,5 +41,6 @@ app.post('/api/send', upload.array('attachments'), async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`P7M Ultra Engine Active on port ${PORT}`));
+// Change the port line at the bottom to this:
+const PORT = process.env.PORT || 8080; 
+app.listen(PORT, () => console.log(`P7M Ultra Engine Live on port ${PORT}`));
