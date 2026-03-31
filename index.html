@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P7M ULTRA | Enterprise Delivery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #050608; color: #f1f5f9; font-family: 'Plus Jakarta Sans', sans-serif; background-image: radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.05) 0px, transparent 50%); }
+        .glass-card { background: rgba(15, 17, 23, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 20px; }
+        .input-glow { background: #0f1117; border: 1px solid #1e293b; color: #fff; padding: 14px; border-radius: 12px; outline: none; transition: all 0.3s; }
+        .input-glow:focus { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
+        .btn-action { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); transition: all 0.4s; }
+        .btn-stop { background: #450a0a; color: #f87171; border: 1px solid #7f1d1d; }
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-6 min-h-screen">
+    <div class="max-w-[1700px] mx-auto grid grid-cols-12 gap-6">
+        
+        <div class="col-span-3 space-y-6">
+            <div class="flex items-center gap-4 px-2">
+                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight uppercase">P7M <span class="text-blue-500 italic">Ultra</span></h1>
+                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest text-blue-400">Status: Online</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 border-t-4 border-blue-600">
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="text-center p-3 rounded-xl bg-zinc-900/50 border border-white/5">
+                        <span class="text-[9px] text-zinc-500 uppercase font-black">Successful</span>
+                        <p id="v-sent" class="text-3xl font-black text-green-500">0</p>
+                    </div>
+                    <div class="text-center p-3 rounded-xl bg-zinc-900/50 border border-white/5">
+                        <span class="text-[9px] text-zinc-500 uppercase font-black">Failed</span>
+                        <p id="v-fail" class="text-3xl font-black text-red-500">0</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                        <div id="p-bar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <button onclick="launch()" id="btn-start" class="w-full btn-action py-4 rounded-xl font-black text-sm uppercase tracking-widest">Start Mission</button>
+                    <button onclick="forceStop()" id="btn-stop" class="w-full btn-stop py-4 rounded-xl font-black text-sm uppercase hidden">Emergency Stop</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-span-6 space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-card p-4">
+                    <label class="block text-[9px] font-black text-zinc-500 mb-2 uppercase">SMTP CSV</label>
+                    <input type="file" id="f-smtp" accept=".csv" class="text-[10px] w-full text-zinc-400">
+                </div>
+                <div class="glass-card p-4">
+                    <label class="block text-[9px] font-black text-zinc-500 mb-2 uppercase">Target CSV</label>
+                    <input type="file" id="f-target" accept=".csv" class="text-[10px] w-full text-zinc-400">
+                </div>
+            </div>
+
+            <div class="glass-card p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="s-name" placeholder="Sender Name" class="input-glow" value="P7M Support">
+                    <input type="text" id="s-sub" placeholder="Subject" class="input-glow">
+                </div>
+                <div class="glass-card p-4">
+                    <label class="block text-[9px] font-black text-blue-500 mb-2 uppercase">Attachments (PDF/IMG)</label>
+                    <input type="file" id="f-attach" multiple class="text-[10px] w-full text-zinc-400">
+                </div>
+                <div class="grid grid-cols-2 gap-6 h-[400px]">
+                    <textarea id="s-body" class="input-glow flex-1 font-mono text-[11px] custom-scroll" placeholder="HTML Code..."></textarea>
+                    <div class="bg-white rounded-xl overflow-hidden border-4 border-zinc-900">
+                        <iframe id="p-frame" class="w-full h-full border-0"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-span-3">
+            <div class="glass-card h-full p-6 flex flex-col">
+                <h3 class="text-[11px] font-black text-zinc-500 uppercase mb-4">Stream Analytics</h3>
+                <div id="log" class="flex-1 overflow-y-auto space-y-2 custom-scroll font-mono text-[10px]"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let smtps = [], targets = [], sent = 0, fail = 0, isRunning = false;
+
+        document.getElementById('f-smtp').onchange = e => Papa.parse(e.target.files[0], { complete: r => { smtps = r.data; addLog("SMTP Loaded", "text-blue-400"); } });
+        document.getElementById('f-target').onchange = e => Papa.parse(e.target.files[0], { complete: r => { targets = r.data; addLog("Targets Loaded", "text-blue-400"); } });
+        document.getElementById('s-body').oninput = e => document.getElementById('p-frame').srcdoc = e.target.value;
+
+        async function launch() {
+            if(!smtps.length || !targets.length) return alert("Upload CSVs first!");
+            isRunning = true;
+            document.getElementById('btn-start').classList.add('hidden');
+            document.getElementById('btn-stop').classList.remove('hidden');
+
+            const attachments = document.getElementById('f-attach').files;
+
+            for(let i=0; i < targets.length; i++) {
+                if(!isRunning) break;
+                const sRow = smtps[i % smtps.length];
+                const tRow = targets[i];
+                
+                const formData = new FormData();
+                formData.append('user', sRow[0]);
+                formData.append('pass', sRow[1]);
+                formData.append('fromName', document.getElementById('s-name').value);
+                formData.append('to', tRow[0]);
+                formData.append('subject', document.getElementById('s-sub').value);
+                formData.append('html', document.getElementById('s-body').value);
+                
+                for(let file of attachments) { formData.append('attachments', file); }
+
+                try {
+                    const res = await fetch('/api/send', { method: 'POST', body: formData });
+                    const d = await res.json();
+                    if(d.success) { sent++; addLog(`SENT: ${tRow[0]}`, "text-green-400"); }
+                    else { throw new Error(d.error); }
+                } catch(e) { fail++; addLog(`FAIL: ${tRow[0]}`, "text-red-500"); }
+
+                document.getElementById('v-sent').innerText = sent;
+                document.getElementById('v-fail').innerText = fail;
+                document.getElementById('p-bar').style.width = ((i+1)/targets.length * 100) + '%';
+                await new Promise(r => setTimeout(r, 2000));
+            }
+            isRunning = false;
+        }
+
+        function forceStop() { isRunning = false; location.reload(); }
+        function addLog(m, c) { const d = document.createElement('div'); d.className = c; d.innerText = `> ${m}`; document.getElementById('log').prepend(d); }
+    </script>
+</body>
+</html>
