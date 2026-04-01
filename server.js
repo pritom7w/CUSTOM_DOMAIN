@@ -9,14 +9,13 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('.'));
 
-// P7M ULTRA - PRE-INSTALLED MAILTRAP ENGINE
 const TRANSPORT_CONFIG = {
     host: "live.smtp.mailtrap.io",
-    port: 587,
+    port: 2525, // Change this from 587 to 2525
     secure: false,
     auth: {
         user: "api", 
-        pass: "529fcc3a514bd63c575053b40d50d4a0" // Your provided Token
+        pass: "529fcc3a514bd63c575053b40d50d4a0"
     },
     tls: { rejectUnauthorized: false }
 };
