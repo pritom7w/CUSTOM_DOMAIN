@@ -9,15 +9,19 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('.'));
 
+// P7M ULTRA - RECONFIGURED FOR RAILWAY & MAILTRAP
 const TRANSPORT_CONFIG = {
     host: "live.smtp.mailtrap.io",
-    port: 2525, // Change this from 587 to 2525
+    port: 2525, // Port 2525 is safer for cloud hosting than 587
     secure: false,
     auth: {
         user: "api", 
-        pass: "529fcc3a514bd63c575053b40d50d4a0"
+        pass: "529fcc3a514bd63c575053b40d50d4a0" // Your verified API Token
     },
-    tls: { rejectUnauthorized: false }
+    tls: { 
+        rejectUnauthorized: false,
+        minVersion: "TLSv1.2"
+    }
 };
 
 app.post('/api/send', upload.array('attachments'), async (req, res) => {
@@ -33,7 +37,7 @@ app.post('/api/send', upload.array('attachments'), async (req, res) => {
 
     try {
         await transporter.sendMail({
-            from: `"${fromName}" <billing@p7m.online>`, // Using your verified domain
+            from: `"${fromName}" <support@p7m.online>`, // Verified domain sender
             to,
             subject,
             html,
@@ -41,11 +45,13 @@ app.post('/api/send', upload.array('attachments'), async (req, res) => {
         });
         res.json({ success: true });
     } catch (error) {
-        console.error("Mailtrap Error:", error.message);
+        console.error("Mailtrap Error Details:", error.message);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Port 8080 is required for Railway Deployment
+// CRITICAL: Railway uses the PORT environment variable
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`P7M Ultra Engine Live on p7m.online`));
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`P7M Ultra Engine Active on Port ${PORT}`);
+});
