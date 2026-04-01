@@ -55,13 +55,9 @@
         </div>
 
         <div class="col-span-6 space-y-6">
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 <div class="glass-card p-4">
-                    <label class="block text-[9px] font-black text-zinc-500 mb-2 uppercase">SMTP CSV</label>
-                    <input type="file" id="f-smtp" accept=".csv" class="text-[10px] w-full text-zinc-400">
-                </div>
-                <div class="glass-card p-4">
-                    <label class="block text-[9px] font-black text-zinc-500 mb-2 uppercase">Target CSV</label>
+                    <label class="block text-[9px] font-black text-zinc-500 mb-2 uppercase">Target CSV (Emails)</label>
                     <input type="file" id="f-target" accept=".csv" class="text-[10px] w-full text-zinc-400">
                 </div>
             </div>
@@ -76,7 +72,7 @@
                     <input type="file" id="f-attach" multiple class="text-[10px] w-full text-zinc-400">
                 </div>
                 <div class="grid grid-cols-2 gap-6 h-[400px]">
-                    <textarea id="s-body" class="input-glow flex-1 font-mono text-[11px] custom-scroll" placeholder="HTML Code..."></textarea>
+                    <textarea id="s-body" class="input-glow flex-1 font-mono text-[11px] custom-scroll" placeholder="Paste HTML Email Code Here..."></textarea>
                     <div class="bg-white rounded-xl overflow-hidden border-4 border-zinc-900">
                         <iframe id="p-frame" class="w-full h-full border-0"></iframe>
                     </div>
@@ -93,14 +89,13 @@
     </div>
 
     <script>
-        let smtps = [], targets = [], sent = 0, fail = 0, isRunning = false;
+        let targets = [], sent = 0, fail = 0, isRunning = false;
 
-        document.getElementById('f-smtp').onchange = e => Papa.parse(e.target.files[0], { complete: r => { smtps = r.data; addLog("SMTP Loaded", "text-blue-400"); } });
         document.getElementById('f-target').onchange = e => Papa.parse(e.target.files[0], { complete: r => { targets = r.data; addLog("Targets Loaded", "text-blue-400"); } });
         document.getElementById('s-body').oninput = e => document.getElementById('p-frame').srcdoc = e.target.value;
 
         async function launch() {
-            if(!smtps.length || !targets.length) return alert("Upload CSVs first!");
+            if(!targets.length) return alert("Upload your Target CSV first!");
             isRunning = true;
             document.getElementById('btn-start').classList.add('hidden');
             document.getElementById('btn-stop').classList.remove('hidden');
@@ -109,12 +104,10 @@
 
             for(let i=0; i < targets.length; i++) {
                 if(!isRunning) break;
-                const sRow = smtps[i % smtps.length];
                 const tRow = targets[i];
+                if(!tRow[0]) continue;
                 
                 const formData = new FormData();
-                formData.append('user', sRow[0]);
-                formData.append('pass', sRow[1]);
                 formData.append('fromName', document.getElementById('s-name').value);
                 formData.append('to', tRow[0]);
                 formData.append('subject', document.getElementById('s-sub').value);
@@ -123,22 +116,28 @@
                 for(let file of attachments) { formData.append('attachments', file); }
 
                 try {
-                    // Update the fetch URL to your live domain:
-const res = await fetch('https://p7m.online/api/send', { 
-    method: 'POST', 
-    body: formData 
-});
+                    // Points to your live Railway domain
+                    const res = await fetch('https://p7m.online/api/send', { method: 'POST', body: formData });
                     const d = await res.json();
-                    if(d.success) { sent++; addLog(`SENT: ${tRow[0]}`, "text-green-400"); }
-                    else { throw new Error(d.error); }
-                } catch(e) { fail++; addLog(`FAIL: ${tRow[0]}`, "text-red-500"); }
+                    if(d.success) { 
+                        sent++; 
+                        addLog(`DELIVERED: ${tRow[0]}`, "text-green-400"); 
+                    } else { throw new Error(d.error); }
+                } catch(e) { 
+                    fail++; 
+                    addLog(`FAILED: ${tRow[0]}`, "text-red-500"); 
+                }
 
                 document.getElementById('v-sent').innerText = sent;
                 document.getElementById('v-fail').innerText = fail;
                 document.getElementById('p-bar').style.width = ((i+1)/targets.length * 100) + '%';
+                
+                // Anti-spam delay: 2 seconds
                 await new Promise(r => setTimeout(r, 2000));
             }
             isRunning = false;
+            document.getElementById('btn-start').classList.remove('hidden');
+            document.getElementById('btn-stop').classList.add('hidden');
         }
 
         function forceStop() { isRunning = false; location.reload(); }
