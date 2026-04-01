@@ -55,3 +55,16 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`P7M Ultra Engine Active on Port ${PORT}`);
 });
+// Add this route to your server.js
+app.get('/api/test-connection', async (req, res) => {
+    let transporter = nodemailer.createTransport(TRANSPORT_CONFIG);
+    
+    try {
+        // Verify connection configuration
+        await transporter.verify();
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Test Connection Error:", error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
