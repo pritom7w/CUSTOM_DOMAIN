@@ -9,19 +9,24 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('.'));
 
+// P7M ULTRA - PRE-INSTALLED MAILTRAP ENGINE
+const TRANSPORT_CONFIG = {
+    host: "live.smtp.mailtrap.io",
+    port: 587,
+    secure: false,
+    auth: {
+        user: "api", 
+        pass: "529fcc3a514bd63c575053b40d50d4a0" // Your provided Token
+    },
+    tls: { rejectUnauthorized: false }
+};
+
 app.post('/api/send', upload.array('attachments'), async (req, res) => {
-    const { user, pass, fromName, to, subject, html } = req.body;
+    const { fromName, to, subject, html } = req.body;
     const files = req.files;
 
-    let transporter = nodemailer.createTransport({
-        host: "live.smtp.mailtrap.io",
-        port: 587,
-        secure: false,
-        auth: { user, pass },
-        tls: { rejectUnauthorized: false }
-    });
+    let transporter = nodemailer.createTransport(TRANSPORT_CONFIG);
 
-    // Format attachments for Nodemailer
     const attachments = files ? files.map(file => ({
         filename: file.originalname,
         content: file.buffer
@@ -29,7 +34,7 @@ app.post('/api/send', upload.array('attachments'), async (req, res) => {
 
     try {
         await transporter.sendMail({
-            from: `"${fromName}" <billing@p7m.online>`,
+            from: `"${fromName}" <billing@p7m.online>`, // Using your verified domain
             to,
             subject,
             html,
@@ -37,10 +42,11 @@ app.post('/api/send', upload.array('attachments'), async (req, res) => {
         });
         res.json({ success: true });
     } catch (error) {
+        console.error("Mailtrap Error:", error.message);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Change the port line at the bottom to this:
-const PORT = process.env.PORT || 8080; 
-app.listen(PORT, () => console.log(`P7M Ultra Engine Live on port ${PORT}`));
+// Port 8080 is required for Railway Deployment
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`P7M Ultra Engine Live on p7m.online`));
